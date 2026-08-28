@@ -21,13 +21,11 @@ async function registerUser(req, res) {
         });
     }
 
-
-
     // Validate username length and format
-    const usernameRegex = /^(?=.{10,12}$)(?!.*_.*_)(?!.*\..*\.)[a-z0-9_.]+$/;
+    const usernameRegex = /^(?=.{6,12}$)(?!.*_.*_)(?!.*\..*\.)[a-z0-9_.]+$/;
     if (!usernameRegex.test(username)) {
         return res.status(400).json({
-            message: 'Username must be exactly 10 characters long and contain only lowercase letters, numbers, _ or .'
+            message: 'Username must be 10-12 characters long and can only contain lowercase letters, numbers, underscores, and periods. It cannot have consecutive underscores or periods.'
         });
     }
 
@@ -52,8 +50,6 @@ async function registerUser(req, res) {
             message: 'Invalid email format'
         })
     }
-
-
 
 
 
