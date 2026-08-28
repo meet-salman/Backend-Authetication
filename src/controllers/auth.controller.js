@@ -21,20 +21,29 @@ async function registerUser(req, res) {
         });
     }
 
-    // Normalize input data by trimming whitespace
-    username = username.trim().toLowerCase();
-    email = email.trim().toLowerCase();
 
+
+    // Validate username length and format
+    const usernameRegex = /^(?=.{10,12}$)(?!.*_.*_)(?!.*\..*\.)[a-z0-9_.]+$/;
+    if (!usernameRegex.test(username)) {
+        return res.status(400).json({
+            message: 'Username must be exactly 10 characters long and contain only lowercase letters, numbers, _ or .'
+        });
+    }
 
     // Validate password strength and length
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/;
     if (!strongPasswordRegex.test(password)) {
         // Node.js Controller Response
         return res.status(400).json({
-            message: 'Password must be at least 8 characters long.<br />Password must contain at least:<br />- one uppercase letter<br />- one lowercase letter<br />- one number<br />- one special character'
+            message: 'Password must be at least 8-15 characters long.<br />Password must contain at least:<br />- one uppercase letter<br />- one lowercase letter<br />- one number<br />- one special character'
         });
 
     }
+
+    // Normalize input data by trimming whitespace
+    username = username.trim().toLowerCase();
+    email = email.trim().toLowerCase();
 
     // Validate email format
     const emailRegex = /^[a-zA-Z0-9.]+@gmail\.com$/;
@@ -43,6 +52,8 @@ async function registerUser(req, res) {
             message: 'Invalid email format'
         })
     }
+
+
 
 
 
