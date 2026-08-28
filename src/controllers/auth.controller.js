@@ -3,11 +3,48 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-
-
 async function registerUser(req, res) {
 
-    const { username, password, email } = req.body;
+    let { username, password, email } = req.body;
+
+    // Validate input fields
+    if (
+        typeof username !== 'string' ||
+        typeof password !== 'string' ||
+        typeof email !== 'string' ||
+        username.trim() === '' ||
+        password === '' ||
+        email.trim() === ''
+    ) {
+        return res.status(400).json({
+            message: 'All fields are required'
+        });
+    }
+
+    // Normalize input data by trimming whitespace
+    username = username.trim().toLowerCase();
+    email = email.trim().toLowerCase();
+
+
+    // Validate password strength and length
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(password)) {
+        // Node.js Controller Response
+        return res.status(400).json({
+            message: 'Password must be at least 8 characters long.<br />Password must contain at least:<br />- one uppercase letter<br />- one lowercase letter<br />- one number<br />- one special character'
+        });
+
+    }
+
+    // Validate email format
+    const emailRegex = /^[a-zA-Z0-9.]+@gmail\.com$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            message: 'Invalid email format'
+        })
+    }
+
+
 
     try {
         // Check user exist or not
@@ -25,8 +62,7 @@ async function registerUser(req, res) {
         }
 
         // Paassword hashing
-        const salt = await bcrypt.genSaltSync(saltRounds);
-        const hashedPassword = await bcrypt.hashSync(password, salt);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Create new user
         const newUser = await userModel.create({
@@ -36,24 +72,31 @@ async function registerUser(req, res) {
         });
 
         // Generate JWT token 
-        const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ id: newUser._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '5d' }
+        );
         res.cookie('token', token);
 
 
         res.status(201).json({
             message: 'User registered successfully',
-            user: newUser
+            newUser: {
+                id: newUser._id,
+                username: newUser.username,
+                email: newUser.email
+            }
         })
 
     }
     catch (error) {
+        console.error('Error registering user:', error)
+
         res.status(500).json({
             message: 'Internal server error',
-            error: error.message
         })
     }
 
 }
-
 
 module.exports = { registerUser };
