@@ -6,20 +6,25 @@ async function registerUser(req, res) {
 
     const { username, password, email } = req.body;
 
-    const isEmailExist = await userModel.findOne({ email });
-    const isUsernameExist = await userModel.findOne({ username });
+    const isUserExist = await userModel.findOne({
+        $or: [
+            { email },
+            { username }
+        ]
+    });
 
-    if (isEmailExist) {
+    // Check user exist or not
+    if (isUserExist) {
         return res.status(409).json({
-            message: 'Email already exists'
+            message: 'User already exists'
         })
     }
 
-    if (isUsernameExist) {
-        return res.status(409).json({
-            message: 'Username already exists'
-        })
-    }
+    // if (isUsernameExist) {
+    //     return res.status(409).json({
+    //         message: 'Username already exists'
+    //     })
+    // }
 
     const newUser = await userModel.create({ username, password, email });
 
